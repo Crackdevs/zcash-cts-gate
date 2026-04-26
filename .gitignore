@@ -10,8 +10,7 @@
 # Windows debug symbols
 *.pdb
 
-# Executables
-*.exe
+# Dynamic libraries
 *.dll
 
 # Logs
