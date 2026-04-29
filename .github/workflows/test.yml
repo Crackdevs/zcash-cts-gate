@@ -8,13 +8,14 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.2.2
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
@@ -29,11 +30,13 @@ jobs:
       run: cargo clippy --locked -- -D warnings
 
     - name: Run tests
-      run: cargo test --locked --verbose
+      run: |
+        mkdir -p reports
+        cargo test --locked --verbose
 
     - name: Upload reports
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: test-reports
         path: reports/
