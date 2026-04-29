@@ -13,6 +13,7 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4.2.2
 
@@ -48,14 +49,21 @@ jobs:
       run: cargo build --locked --release
 
     - name: Check endpoint reachability
+      id: endpoint
+      shell: bash
       run: |
-        echo "Checking https://lightwalletd.testnet.cipherscan.app ..."
-        curl --fail --silent --max-time 10 \
-          https://lightwalletd.testnet.cipherscan.app \
-          && echo "✅ Endpoint reachable" \
-          || (echo "❌ Endpoint unreachable — tests skipped, this is not a code failure" && exit 1)
+        echo "Checking lightwalletd.testnet.cipherscan.app:443 ..."
+        if timeout 10 bash -c "</dev/tcp/lightwalletd.testnet.cipherscan.app/443"; then
+          echo "reachable=true" >> "$GITHUB_OUTPUT"
+          echo "✅ Endpoint TCP port reachable"
+        else
+          echo "reachable=false" >> "$GITHUB_OUTPUT"
+          echo "⚠️ Endpoint unreachable — skipping MVP run, not a code failure"
+          exit 0
+        fi
 
     - name: Run MVP test suite
+      if: steps.endpoint.outputs.reachable == 'true'
       run: |
         mkdir -p reports
         ./target/release/cts-gate run \
@@ -69,4 +77,4 @@ jobs:
       with:
         name: test-reports
         path: reports/
-        if-no-files-found: error
+        if-no-files-found: ignore
