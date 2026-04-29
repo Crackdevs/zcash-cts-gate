@@ -11,9 +11,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4.2.2
 
@@ -29,10 +28,40 @@ jobs:
     - name: Run clippy
       run: cargo clippy --locked -- -D warnings
 
-    - name: Run tests
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+    - uses: actions/checkout@v4.2.2
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install protoc
+      run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+    - name: Cache Rust
+      uses: Swatinem/rust-cache@v2
+
+    - name: Build
+      run: cargo build --locked --release
+
+    - name: Check endpoint reachability
+      run: |
+        echo "Checking https://lightwalletd.testnet.cipherscan.app ..."
+        curl --fail --silent --max-time 10 \
+          https://lightwalletd.testnet.cipherscan.app \
+          && echo "✅ Endpoint reachable" \
+          || (echo "❌ Endpoint unreachable — tests skipped, this is not a code failure" && exit 1)
+
+    - name: Run MVP test suite
       run: |
         mkdir -p reports
-        cargo test --locked --verbose
+        ./target/release/cts-gate run \
+          --profile lightwalletd \
+          --suite mvp \
+          --output reports
 
     - name: Upload reports
       if: always()
@@ -40,4 +69,4 @@ jobs:
       with:
         name: test-reports
         path: reports/
-        if-no-files-found: warn
+        if-no-files-found: error
