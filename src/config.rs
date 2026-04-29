@@ -57,14 +57,14 @@ impl Config {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|s| s.to_str()).map_or(false, |ext| {
-                ext == "json" || ext == "yaml" || ext == "yml"
-            }) {
+            if path.extension().and_then(|s| s.to_str()).is_some_and(|ext| {
+            ext == "json" || ext == "yaml" || ext == "yml"
+                }) {
                 let content = fs::read_to_string(&path)?;
                 let test_case: TestCase = if path
                     .extension()
                     .and_then(|s| s.to_str())
-                    .map_or(false, |ext| ext == "yaml" || ext == "yml")
+                    .is_some_and(|ext| ext == "yaml" || ext == "yml")
                 {
                     serde_yaml::from_str(&content)?
                 } else {

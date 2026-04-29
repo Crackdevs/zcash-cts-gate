@@ -52,7 +52,7 @@ impl TestRunner {
                         let comparator = Comparator;
                         let (passed, details) = match actual {
                             Ok(ref actual_value) => {
-                                match comparator.compare(&tc.expected, &actual_value, &tc.validation) {
+                                match comparator.compare(&tc.expected, actual_value, &tc.validation) {
                                     Ok((is_match, comparison_details)) => (is_match, comparison_details),
                                     Err(ref e) => (false, format!("Comparison error: {}", e)),
                                 }
@@ -105,7 +105,7 @@ impl TestRunner {
         let (passed, details) = match actual {
             Ok(ref actual_value) => {
                 let (is_match, comparison_details) =
-                    comparator.compare(&test_case.expected, &actual_value, &test_case.validation)?;
+                    comparator.compare(&test_case.expected, actual_value, &test_case.validation)?;
 
                 (is_match, comparison_details)
             }

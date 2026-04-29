@@ -4,6 +4,7 @@ use tonic::transport::{Channel, ClientTlsConfig, Endpoint};
 use crate::config::TestCase;
 
 // Include generated protobuf code from build.rs
+#[allow(clippy::doc_overindented_list_items)]
 pub mod zcash_service {
     tonic::include_proto!("cash.z.wallet.sdk.rpc");
 }
